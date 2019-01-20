@@ -29,6 +29,8 @@ public static class CustomLogger
         {
             Layout = "${longdate}|${level}|${logger}|${message} ${exception:format=tostring}",
             FileName = Application.persistentDataPath + Path.DirectorySeparatorChar + "${shortdate}-custom.log",
+            KeepFileOpen = true,
+            ConcurrentWrites = false,
             ArchiveNumbering = ArchiveNumberingMode.Date,
             ArchiveEvery = FileArchivePeriod.Day,
             MaxArchiveFiles = 10
@@ -122,11 +124,11 @@ public static class CustomLogger
     /// <returns>An existing logger, if one exists for the given file path. Else, a new logger.</returns>
     private static Logger GetLogger(string callerFilePath)
     {
-        if (!Loggers.ContainsKey(callerFilePath))
+        if (Loggers.TryGetValue(callerFilePath, out Logger logger))
         {
-            Loggers[callerFilePath] = LogManager.GetLogger(Path.GetFileName(callerFilePath));
+            return logger;
         }
 
-        return Loggers[callerFilePath];
+        return LogManager.GetLogger(Path.GetFileName(callerFilePath));
     }
 }
