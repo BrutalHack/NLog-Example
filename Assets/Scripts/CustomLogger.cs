@@ -1,11 +1,12 @@
 using System;
-using System.Globalization;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Runtime.CompilerServices;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
 using UnityEngine;
+using Logger = NLog.Logger;
 
 /// <summary>
 /// Customized Logging using NLog to target log files and the Unity Editor Log Console. <br/>
@@ -13,6 +14,8 @@ using UnityEngine;
 /// </summary>
 public static class CustomLogger
 {
+    private static readonly ConcurrentDictionary<string, Logger> Loggers = new ConcurrentDictionary<string, Logger>();
+
     /// <summary>
     /// NLog initialization
     /// </summary>
@@ -97,7 +100,7 @@ public static class CustomLogger
     }
 
     #endregion
-    
+
     private static void Log(LogLevel logLevel, string message,
         string callerMemberName = "", string callerFilePath = "", int callerLineNumber = 0)
     {
@@ -108,7 +111,22 @@ public static class CustomLogger
         string callerMemberName = "", string callerFilePath = "", int callerLineNumber = 0)
     {
         string logMessage = $"({callerMemberName}:{callerLineNumber}) {message}";
-        var logger = LogManager.GetLogger(Path.GetFileName(callerFilePath));
+        var logger = GetLogger(callerFilePath);
         logger.Log(logLevel, exception, logMessage);
+    }
+
+    /// <summary>
+    /// Gets an existing Logger 
+    /// </summary>
+    /// <param name="callerFilePath"></param>
+    /// <returns>An existing logger, if one exists for the given file path. Else, a new logger.</returns>
+    private static Logger GetLogger(string callerFilePath)
+    {
+        if (!Loggers.ContainsKey(callerFilePath))
+        {
+            Loggers[callerFilePath] = LogManager.GetLogger(Path.GetFileName(callerFilePath));
+        }
+
+        return Loggers[callerFilePath];
     }
 }
