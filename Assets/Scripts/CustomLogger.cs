@@ -124,11 +124,11 @@ public static class CustomLogger
     /// <returns>An existing logger, if one exists for the given file path. Else, a new logger.</returns>
     private static Logger GetLogger(string callerFilePath)
     {
-        if (Loggers.TryGetValue(callerFilePath, out Logger logger))
+        if (!Loggers.TryGetValue(callerFilePath, out Logger logger))
         {
-            return logger;
+            logger = LogManager.GetLogger(Path.GetFileName(callerFilePath));
+            Loggers[callerFilePath] = logger;
         }
-
-        return LogManager.GetLogger(Path.GetFileName(callerFilePath));
+        return logger;
     }
 }
